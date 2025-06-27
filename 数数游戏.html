@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字顺序练习</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+        
+        .container.shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .order-prompt {
+            font-size: 1.3rem;
+            margin-top: 10px;
+            font-weight: 700;
+            padding: 8px 15px;
+            border-radius: 30px;
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .asc-prompt {
+            background: linear-gradient(to right, #43e97b, #38f9d7);
+        }
+        
+        .desc-prompt {
+            background: linear-gradient(to right, #fa709a, #fee140);
+        }
+        
+        .game-area {
+            padding: 25px 20px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #numberGrid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 20px 0 30px;
+            width: 100%;
+            max-width: 350px;
+        }
+        
+        .number-card {
+            aspect-ratio: 1/1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(145deg, #e0e7ff, #c7d2fe);
+            border-radius: 12px;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4c51bf;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .number-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            clip-path: polygon(0 0, 100% 0, 100% 30%, 0 70%);
+        }
+        
+        .number-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .number-card.correct {
+            background: linear-gradient(145deg, #a7f3d0, #6ee7b7);
+            color: #065f46;
+            transform: scale(0.95);
+            cursor: default;
+        }
+        
+        .timer-container {
+            width: 100%;
+            max-width: 300px;
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+        
+        .timer-bar {
+            height: 100%;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            border-radius: 10px;
+            width: 100%;
+            transition: width 1s linear;
+        }
+        
+        .message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-weight: 600;
+            font-size: 1.1rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            width: 100%;
+            max-width: 350px;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            border: 2px solid #ffcdd2;
+        }
+        
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 2px solid #c8e6c9;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-restart {
+            background: linear-gradient(to right, #10b981, #059669);
+            color: white;
+        }
+        
+        .btn-exit {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .success-counter {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .success-star {
+            font-size: 1.8rem;
+            color: #e2e8f0;
+        }
+        
+        .success-star.active {
+            color: #FFD700;
+            animation: pulse 0.5s ease;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        
+        @media (max-width: 480px) {
+            .number-card {
+                font-size: 2rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .btn {
+                padding: 10px 25px;
+                font-size: 0.9rem;
+            }
+            
+            .order-prompt {
+                font-size: 1.1rem;
+            }
+        }
+        
+        .pulse {
+            animation: pulse 0.5s;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        #fireworksCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            display: none;
+        }
+        
+        .final-options {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .streak-message {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #4c51bf;
+            text-align: center;
+        }
+        
+        .mode-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+        
+        .asc-icon {
+            color: #43e97b;
+        }
+        
+        .desc-icon {
+            color: #fa709a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="mode-indicator">
+                <i id="modeIcon" class="fas fa-sort-amount-down-alt asc-icon"></i>
+            </div>
+            <h1>数字顺序练习</h1>
+            <div id="orderPrompt" class="order-prompt asc-prompt">
+                <i class="fas fa-arrow-up"></i> 请按从小到大的顺序点击数字
+            </div>
+        </header>
+        
+        <div class="game-area">
+            <div class="timer-container">
+                <div id="timerBar" class="timer-bar"></div>
+            </div>
+            
+            <div id="numberGrid"></div>
+            
+            <div id="errorMessage" class="message error-message">
+                <i class="fas fa-exclamation-circle"></i> 顺序错误！请重新开始练习
+            </div>
+            
+            <div id="successMessage" class="message success-message">
+                <i class="fas fa-check-circle"></i> 恭喜！你已正确完成练习
+            </div>
+            
+            <div class="success-counter">
+                <div id="star1" class="success-star"><i class="fas fa-star"></i></div>
+                <div id="star2" class="success-star"><i class="fas fa-star"></i></div>
+                <div id="star3" class="success-star"><i class="fas fa-star"></i></div>
+            </div>
+            
+            <div class="controls">
+                <button id="restartBtn" class="btn btn-restart">
+                    <i class="fas fa-redo"></i> 重新开始
+                </button>
+            </div>
+            
+            <div id="finalOptions" class="final-options">
+                <div class="streak-message">
+                    <i class="fas fa-trophy"></i> 连续3次成功完成！
+                </div>
+                <div class="controls">
+                    <button id="playAgainBtn" class="btn btn-restart">
+                        <i class="fas fa-play"></i> 再来一次
+                    </button>
+                    <button id="exitGameBtn" class="btn btn-exit">
+                        <i class="fas fa-times"></i> 结束游戏
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <canvas id="fireworksCanvas"></canvas>
+
+    <audio id="errorSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="successSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="completeSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="modeChangeSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-sci-fi-positive-notification-266.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // 获取DOM元素
+        const numberGrid = document.getElementById('numberGrid');
+        const timerBar = document.getElementById('timerBar');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const restartBtn = document.getElementById('restartBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const exitGameBtn = document.getElementById('exitGameBtn');
+        const finalOptions = document.getElementById('finalOptions');
+        const star1 = document.getElementById('star1');
+        const star2 = document.getElementById('star2');
+        const star3 = document.getElementById('star3');
+        const fireworksCanvas = document.getElementById('fireworksCanvas');
+        const orderPrompt = document.getElementById('orderPrompt');
+        const modeIcon = document.getElementById('modeIcon');
+        const errorSound = document.getElementById('errorSound');
+        const successSound = document.getElementById('successSound');
+        const completeSound = document.getElementById('completeSound');
+        const modeChangeSound = document.getElementById('modeChangeSound');
+        
+        // 游戏状态
+        let gameState = {
+            currentNumber: 0,
+            timeLeft: 60,
+            gameActive: true,
+            timerId: null,
+            sequence: [],
+            startTime: 0,
+            hasError: false,
+            consecutiveSuccess: 0,
+            currentTarget: 0,
+            order: 'asc' // 'asc' 从小到大, 'desc' 从大到小
+        };
+        
+        // 初始化游戏
+        function initGame() {
+            gameState.currentNumber = 0;
+            gameState.timeLeft = 60;
+            gameState.gameActive = true;
+            gameState.hasError = false;
+            gameState.startTime = Date.now();
+            
+            // 随机决定顺序模式
+            gameState.order = Math.random() > 0.5 ? 'asc' : 'desc';
+            updateOrderPrompt();
+            
+            // 更新UI
+            timerBar.style.width = '100%';
+            timerBar.style.background = 'linear-gradient(to right, #4facfe, #00f2fe)';
+            errorMessage.style.opacity = '0';
+            successMessage.style.opacity = '0';
+            finalOptions.style.display = 'none';
+            
+            // 创建数字卡片
+            createNumberCards();
+            
+            // 开始计时
+            if (gameState.timerId) clearInterval(gameState.timerId);
+            gameState.timerId = setInterval(updateTimer, 1000);
+        }
+        
+        // 更新顺序提示
+        function updateOrderPrompt() {
+            if (gameState.order === 'asc') {
+                orderPrompt.innerHTML = '<i class="fas fa-arrow-up"></i> 请按从小到大的顺序点击数字';
+                orderPrompt.className = 'order-prompt asc-prompt';
+                modeIcon.className = 'fas fa-sort-amount-down-alt asc-icon';
+            } else {
+                orderPrompt.innerHTML = '<i class="fas fa-arrow-down"></i> 请按从大到小的顺序点击数字';
+                orderPrompt.className = 'order-prompt desc-prompt';
+                modeIcon.className = 'fas fa-sort-amount-up desc-icon';
+            }
+            modeChangeSound.play();
+        }
+        
+        // 创建数字卡片
+        function createNumberCards() {
+            numberGrid.innerHTML = '';
+            
+            // 生成9个连续数字（起始点随机）
+            const start = Math.floor(Math.random() * 12); // 0-12之间的随机数
+            gameState.sequence = Array.from({length: 9}, (_, i) => start + i);
+            
+            // 设置当前目标数字
+            if (gameState.order === 'asc') {
+                gameState.currentTarget = Math.min(...gameState.sequence);
+            } else {
+                gameState.currentTarget = Math.max(...gameState.sequence);
+            }
+            
+            // 打乱顺序
+            shuffleArray(gameState.sequence);
+            
+            // 创建卡片
+            gameState.sequence.forEach(num => {
+                const card = document.createElement('div');
+                card.className = 'number-card';
+                card.textContent = num;
+                card.dataset.number = num;
+                card.addEventListener('click', handleCardClick);
+                numberGrid.appendChild(card);
+            });
+        }
+        
+        // 打乱数组
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // 处理卡片点击
+        function handleCardClick(e) {
+            if (!gameState.gameActive) return;
+            
+            const clickedNumber = parseInt(e.target.dataset.number);
+            const card = e.target;
+            
+            // 检查是否是正确的目标数字
+            if (clickedNumber === gameState.currentTarget) {
+                // 正确点击
+                successSound.play();
+                card.classList.add('correct');
+                
+                // 更新当前目标数字
+                const remainingNumbers = gameState.sequence.filter(n => {
+                    const cardElem = document.querySelector(`.number-card[data-number="${n}"]`);
+                    return cardElem && !cardElem.classList.contains('correct');
+                });
+                
+                if (remainingNumbers.length > 0) {
+                    if (gameState.order === 'asc') {
+                        gameState.currentTarget = Math.min(...remainingNumbers);
+                    } else {
+                        gameState.currentTarget = Math.max(...remainingNumbers);
+                    }
+                }
+                
+                // 检查是否完成
+                const completed = document.querySelectorAll('.number-card.correct').length;
+                if (completed === 9) {
+                    finishGame();
+                }
+            } else {
+                // 错误点击
+                errorSound.play();
+                gameState.hasError = true;
+                card.classList.add('pulse');
+                setTimeout(() => card.classList.remove('pulse'), 500);
+                
+                // 显示错误消息
+                errorMessage.style.opacity = '1';
+                setTimeout(() => {
+                    errorMessage.style.opacity = '0';
+                }, 1500);
+                
+                // 添加抖动效果
+                document.querySelector('.container').classList.add('shake');
+                setTimeout(() => {
+                    document.querySelector('.container').classList.remove('shake');
+                }, 500);
+            }
+        }
+        
+        // 更新计时器
+        function updateTimer() {
+            if (!gameState.gameActive) return;
+            
+            gameState.timeLeft--;
+            const elapsed = 60 - gameState.timeLeft;
+            const progress = (elapsed / 60) * 100;
+            timerBar.style.width = `${100 - progress}%`;
+            
+            // 时间少于10秒时改变颜色
+            if (gameState.timeLeft <= 10) {
+                timerBar.style.background = 'linear-gradient(to right, #ff5252, #ff9e80)';
+            }
+            
+            // 检查是否超时
+            if (gameState.timeLeft <= 0) {
+                clearInterval(gameState.timerId);
+                gameState.gameActive = false;
+                timerBar.style.width = '0%';
+                finishGame();
+            }
+        }
+        
+        // 完成游戏
+        function finishGame() {
+            clearInterval(gameState.timerId);
+            gameState.gameActive = false;
+            
+            const elapsedTime = Math.floor((Date.now() - gameState.startTime) / 1000);
+            const completed = document.querySelectorAll('.number-card.correct').length === 9;
+            
+            if (completed && !gameState.hasError && elapsedTime <= 60) {
+                // 成功完成
+                successMessage.textContent = `恭喜！你在${elapsedTime}秒内正确完成练习`;
+                successMessage.style.opacity = '1';
+                completeSound.play();
+                showFireworks();
+                
+                // 更新连续成功次数
+                gameState.consecutiveSuccess++;
+                updateSuccessStars();
+                
+                // 检查是否达到3次连续成功
+                if (gameState.consecutiveSuccess >= 3) {
+                    setTimeout(() => {
+                        finalOptions.style.display = 'flex';
+                    }, 1500);
+                } else {
+                    // 1.5秒后重新开始
+                    setTimeout(initGame, 1500);
+                }
+            } else if (gameState.hasError) {
+                // 顺序错误
+                errorMessage.textContent = "顺序错误！请重新开始练习";
+                errorMessage.style.opacity = '1';
+                errorSound.play();
+                
+                // 重置连续成功
+                gameState.consecutiveSuccess = 0;
+                updateSuccessStars();
+                
+                // 1.5秒后重新开始
+                setTimeout(initGame, 1500);
+            } else {
+                // 超时或未完成
+                errorMessage.textContent = "时间到！请重新开始练习";
+                errorMessage.style.opacity = '1';
+                errorSound.play();
+                
+                // 重置连续成功
+                gameState.consecutiveSuccess = 0;
+                updateSuccessStars();
+                
+                // 1.5秒后重新开始
+                setTimeout(initGame, 1500);
+            }
+        }
+        
+        // 更新成功星星
+        function updateSuccessStars() {
+            star1.classList.remove('active');
+            star2.classList.remove('active');
+            star3.classList.remove('active');
+            
+            if (gameState.consecutiveSuccess >= 1) star1.classList.add('active');
+            if (gameState.consecutiveSuccess >= 2) star2.classList.add('active');
+            if (gameState.consecutiveSuccess >= 3) star3.classList.add('active');
+        }
+        
+        // 显示烟花效果
+        function showFireworks() {
+            fireworksCanvas.style.display = 'block';
+            const ctx = fireworksCanvas.getContext('2d');
+            fireworksCanvas.width = window.innerWidth;
+            fireworksCanvas.height = window.innerHeight;
+            
+            const particles = [];
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            
+            function createParticle(x, y, color) {
+                return {
+                    x: x,
+                    y: y,
+                    color: color,
+                    radius: Math.random() * 3 + 1,
+                    speed: Math.random() * 5 + 2,
+                    angle: Math.random() * Math.PI * 2,
+                    friction: 0.95,
+                    gravity: 0.2,
+                    alpha: 1
+                };
+            }
+            
+            // 创建初始爆炸
+            for (let i = 0; i < 5; i++) {
+                const centerX = Math.random() * fireworksCanvas.width;
+                const centerY = Math.random() * fireworksCanvas.height;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                for (let j = 0; j < 80; j++) {
+                    particles.push(createParticle(centerX, centerY, color));
+                }
+            }
+            
+            // 动画循环
+            function animate() {
+                ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+                
+                for (let i = 0; i < particles.length; i++) {
+                    const p = particles[i];
+                    
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fill();
+                    
+                    // 更新粒子位置
+                    p.x += Math.cos(p.angle) * p.speed;
+                    p.y += Math.sin(p.angle) * p.speed + p.gravity;
+                    p.speed *= p.friction;
+                    p.alpha -= 0.008;
+                    
+                    // 移除消失的粒子
+                    if (p.alpha <= 0) {
+                        particles.splice(i, 1);
+                        i--;
+                    }
+                }
+                
+                // 随机添加新爆炸
+                if (Math.random() < 0.05) {
+                    const centerX = Math.random() * fireworksCanvas.width;
+                    const centerY = Math.random() * fireworksCanvas.height;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    for (let j = 0; j < 60; j++) {
+                        particles.push(createParticle(centerX, centerY, color));
+                    }
+                }
+                
+                if (particles.length > 0) {
+                    requestAnimationFrame(animate);
+                } else {
+                    fireworksCanvas.style.display = 'none';
+                }
+            }
+            
+            animate();
+        }
+        
+        // 按钮事件监听
+        restartBtn.addEventListener('click', () => {
+            gameState.consecutiveSuccess = 0;
+            updateSuccessStars();
+            initGame();
+        });
+        
+        playAgainBtn.addEventListener('click', () => {
+            gameState.consecutiveSuccess = 0;
+            updateSuccessStars();
+            finalOptions.style.display = 'none';
+            initGame();
+        });
+        
+        exitGameBtn.addEventListener('click', function() {
+            if (confirm('确定要结束游戏吗？')) {
+                window.close();
+            }
+        });
+        
+        // 初始化游戏
+        window.onload = initGame;
+    </script>
+</body>
+</html>

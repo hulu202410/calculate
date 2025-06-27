@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猜数字游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+        
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid #4a90e2;
+        }
+        
+        header {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4a90e2;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0d2ff;
+            margin-bottom: 5px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 25px 0;
+            background: rgba(30, 80, 150, 0.4);
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid #4a90e2;
+        }
+        
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            color: #a0d2ff;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4facfe;
+        }
+        
+        .game-area {
+            margin: 30px 0;
+        }
+        
+        .hint-box {
+            background: linear-gradient(135deg, #1d2b64, #2c3e50);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+            font-size: 1.8rem;
+            font-weight: bold;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #3498db;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .number-btn {
+            background: linear-gradient(135deg, #3498db, #1a5f9e);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .number-btn:hover {
+            transform: translateY(-5px) scale(1.1);
+            background: linear-gradient(135deg, #4facfe, #3498db);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        .number-btn:active {
+            transform: translateY(0) scale(0.95);
+        }
+        
+        .feedback {
+            min-height: 90px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 25px 0;
+            padding: 20px;
+            border-radius: 15px;
+            transition: all 0.5s ease;
+            background: rgba(30, 30, 50, 0.7);
+            border: 2px solid #555;
+        }
+        
+        .correct {
+            color: #2ecc71;
+            background: rgba(46, 204, 113, 0.15);
+            border: 2px solid #2ecc71;
+            animation: pulse 0.5s;
+        }
+        
+        .incorrect {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.15);
+            border: 2px solid #e74c3c;
+        }
+        
+        .timeout {
+            color: #f39c12;
+            background: rgba(243, 156, 18, 0.15);
+            border: 2px solid #f39c12;
+        }
+        
+        .controls {
+            margin-top: 20px;
+        }
+        
+        button {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: #1a2a6c;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(to right, #00f2fe, #4facfe);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 10, 30, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            padding: 30px;
+        }
+        
+        .game-over.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .game-over h2 {
+            font-size: 3.5rem;
+            color: #4facfe;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(79, 172, 254, 0.7);
+        }
+        
+        .game-over p {
+            font-size: 1.8rem;
+            margin: 15px 0;
+            color: #a0d2ff;
+        }
+        
+        .stars {
+            font-size: 3rem;
+            letter-spacing: 10px;
+            color: gold;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* 礼花效果 */
+        .confetti {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: #f00;
+            top: -10px;
+            animation: confetti-fall 5s ease-in-out;
+            z-index: 100;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .number-grid {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 10px;
+            }
+            
+            .number-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hint-box {
+                font-size: 1.5rem;
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .number-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .number-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.4rem;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .hint-box {
+                font-size: 1.3rem;
+            }
+            
+            button {
+                padding: 12px 25px;
+                font-size: 1.1rem;
+                margin: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>猜数字游戏</h1>
+            <p class="subtitle">根据提示在0~20之间选择正确的数字</p>
+        </header>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">连续正确</div>
+                <div class="stat-value" id="correct-count">0/3</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">剩余时间</div>
+                <div class="stat-value" id="timer">60秒</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">题目</div>
+                <div class="stat-value" id="problem-count">1</div>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <div class="hint-box" id="hint">正在生成提示...</div>
+            
+            <div class="number-grid" id="number-grid">
+                <!-- 数字按钮将通过JS动态生成 -->
+            </div>
+            
+            <div class="feedback" id="feedback">请根据提示选择一个数字</div>
+        </div>
+        
+        <div class="controls">
+            <button id="new-game">新游戏</button>
+            <button id="hint-btn">新题目</button>
+        </div>
+        
+        <div class="game-over" id="game-over">
+            <h2>恭喜你！挑战成功！</h2>
+            <div class="stars">★★★</div>
+            <p>你成功连续答对了3道题！</p>
+            <p>总用时: <span id="total-time">0</span> 秒</p>
+            <p>题目总数: <span id="total-problems">0</span></p>
+            <button id="play-again">再玩一次</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态变量
+        let currentAnswer = null;
+        let consecutiveCorrect = 0;
+        let problemCount = 1;
+        let totalProblems = 0;
+        let gameActive = true;
+        let countdownTimer = null;
+        let timeLeft = 60;
+        let totalTime = 0;
+        let gameStartTime = null;
+        
+        // DOM元素
+        const hintElement = document.getElementById('hint');
+        const feedbackElement = document.getElementById('feedback');
+        const correctCountElement = document.getElementById('correct-count');
+        const timerElement = document.getElementById('timer');
+        const problemCountElement = document.getElementById('problem-count');
+        const numberGrid = document.getElementById('number-grid');
+        const gameOverElement = document.getElementById('game-over');
+        const totalTimeElement = document.getElementById('total-time');
+        const totalProblemsElement = document.getElementById('total-problems');
+        
+        // 提示生成器数组（使用阿拉伯数字）
+        const hintGenerators = [
+            num => {
+                if (num > 0 && num < 20) {
+                    return `${num-1}和${num+1}中间的数`;
+                }
+                return `比${num-1}大1的数`;
+            },
+            num => {
+                const diff = Math.floor(Math.random() * 4) + 2;
+                if (num - diff >= 0 && num + diff <= 20) {
+                    return `和${num-diff}、${num+diff}距离相等的数`;
+                }
+                return `比${num-1}大1的数`;
+            },
+            num => {
+                if (num >= 10) {
+                    return `${Math.floor(num/10)}个十和${num%10}个一`;
+                }
+                return `${num}个一`;
+            },
+            num => `比20小${20-num}的数`,
+            num => {
+                const diff = Math.floor(Math.random() * 7) + 3;
+                if (num - diff >= 0) {
+                    return `比${num-diff}大${diff}的数`;
+                }
+                return `比${num-1}大1的数`;
+            },
+            num => {
+                const offset = Math.floor(Math.random() * 3) + 2;
+                if (num - offset >= 0) {
+                    return `${num-offset}后面第${offset}个数`;
+                }
+                return `${num-1}后面第1个数`;
+            },
+            num => {
+                const offset = Math.floor(Math.random() * 3) + 2;
+                if (num + offset <= 20) {
+                    return `${num+offset}前面第${offset}个数`;
+                }
+                return `${num+1}前面第1个数`;
+            },
+            num => {
+                const offset = Math.floor(Math.random() * 5) + 3;
+                if (num + offset <= 20) {
+                    return `${num+offset}往前数${offset}个数`;
+                }
+                return `${num+1}往前数1个数`;
+            },
+            num => {
+                const offset = Math.floor(Math.random() * 5) + 3;
+                if (num - offset >= 0) {
+                    return `${num-offset}往后数${offset}个数`;
+                }
+                return `${num-1}往后数1个数`;
+            },
+            num => num === 20 ? "2个十" : `比${num-1}大1的数`,
+            num => num === 10 ? "1个十" : `比${num-1}大1的数`
+        ];
+        
+        // 初始化游戏
+        function initGame() {
+            // 重置游戏状态
+            consecutiveCorrect = 0;
+            problemCount = 1;
+            totalProblems = 0;
+            gameActive = true;
+            timeLeft = 60;
+            totalTime = 0;
+            
+            // 更新UI
+            correctCountElement.textContent = "0/3";
+            problemCountElement.textContent = "1";
+            timerElement.textContent = "60秒";
+            timerElement.style.color = "#4facfe";
+            feedbackElement.textContent = "请根据提示选择一个数字";
+            feedbackElement.className = "feedback";
+            
+            // 隐藏游戏结束画面
+            gameOverElement.classList.remove('show');
+            
+            // 清除计时器
+            if (countdownTimer) clearInterval(countdownTimer);
+            
+            // 生成数字按钮
+            generateNumberButtons();
+            
+            // 生成第一个问题
+            generateNewProblem();
+            
+            // 记录游戏开始时间
+            gameStartTime = Date.now();
+        }
+        
+        // 生成数字按钮
+        function generateNumberButtons() {
+            numberGrid.innerHTML = '';
+            for (let i = 0; i <= 20; i++) {
+                const button = document.createElement('button');
+                button.className = 'number-btn';
+                button.textContent = i;
+                button.addEventListener('click', () => checkAnswer(i));
+                numberGrid.appendChild(button);
+            }
+        }
+        
+        // 开始倒计时
+        function startCountdown() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            
+            timeLeft = 60;
+            timerElement.textContent = `${timeLeft}秒`;
+            timerElement.style.color = "#4facfe";
+            
+            countdownTimer = setInterval(() => {
+                if (!gameActive) return;
+                
+                timeLeft--;
+                timerElement.textContent = `${timeLeft}秒`;
+                
+                // 更新时间颜色
+                if (timeLeft <= 10) {
+                    timerElement.style.color = "#e74c3c";
+                } else if (timeLeft <= 20) {
+                    timerElement.style.color = "#f39c12";
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+        
+        // 处理超时
+        function handleTimeout() {
+            gameActive = false;
+            feedbackElement.innerHTML = `时间到！正确答案是 <strong>${currentAnswer}</strong>`;
+            feedbackElement.className = "feedback timeout";
+            
+            consecutiveCorrect = 0;
+            correctCountElement.textContent = "0/3";
+            
+            // 2秒后生成新问题
+            setTimeout(() => {
+                problemCount++;
+                problemCountElement.textContent = problemCount;
+                totalProblems++;
+                generateNewProblem();
+            }, 2000);
+        }
+        
+        // 生成新问题
+        function generateNewProblem() {
+            if (!gameActive) return;
+            
+            // 生成0-20的随机答案
+            currentAnswer = Math.floor(Math.random() * 21);
+            
+            // 随机选择一个提示生成器
+            const generator = hintGenerators[Math.floor(Math.random() * hintGenerators.length)];
+            
+            // 生成提示
+            hintElement.textContent = generator(currentAnswer);
+            
+            // 重置反馈
+            feedbackElement.textContent = "请根据提示选择一个数字";
+            feedbackElement.className = "feedback";
+            
+            // 开始新的倒计时
+            startCountdown();
+        }
+        
+        // 检查答案
+        function checkAnswer(selectedNumber) {
+            if (!gameActive) return;
+            
+            // 停止当前计时
+            clearInterval(countdownTimer);
+            
+            // 计算本题用时
+            const questionTime = 60 - timeLeft;
+            totalTime += questionTime;
+            
+            if (selectedNumber === currentAnswer) {
+                // 正确答案
+                consecutiveCorrect++;
+                correctCountElement.textContent = `${consecutiveCorrect}/3`;
+                
+                feedbackElement.textContent = "正确！";
+                feedbackElement.className = "feedback correct";
+                
+                // 创建礼花效果
+                createConfetti();
+                
+                // 检查是否连续答对3题
+                if (consecutiveCorrect === 3) {
+                    // 检查总时间是否超过60秒
+                    const totalSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
+                    if (totalSeconds > 60) {
+                        feedbackElement.textContent = `总用时超过60秒，请再答一题！`;
+                        consecutiveCorrect = 0;
+                        correctCountElement.textContent = "0/3";
+                        
+                        // 1秒后生成新问题
+                        setTimeout(() => {
+                            problemCount++;
+                            problemCountElement.textContent = problemCount;
+                            totalProblems++;
+                            generateNewProblem();
+                        }, 1500);
+                    } else {
+                        endGame();
+                    }
+                } else {
+                    // 1秒后生成新问题
+                    setTimeout(() => {
+                        problemCount++;
+                        problemCountElement.textContent = problemCount;
+                        totalProblems++;
+                        generateNewProblem();
+                    }, 1500);
+                }
+            } else {
+                // 错误答案
+                consecutiveCorrect = 0;
+                correctCountElement.textContent = "0/3";
+                
+                feedbackElement.innerHTML = `错误！正确答案是 <strong>${currentAnswer}</strong>`;
+                feedbackElement.className = "feedback incorrect";
+                
+                // 1秒后生成新问题
+                setTimeout(() => {
+                    problemCount++;
+                    problemCountElement.textContent = problemCount;
+                    totalProblems++;
+                    generateNewProblem();
+                }, 2000);
+            }
+        }
+        
+        // 创建礼花效果
+        function createConfetti() {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff9900'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                
+                // 随机颜色
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                // 随机位置
+                confetti.style.left = `${Math.random() * 100}%`;
+                
+                // 随机大小
+                const size = Math.random() * 10 + 5;
+                confetti.style.width = `${size}px`;
+                confetti.style.height = `${size}px`;
+                
+                // 随机动画时间
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                
+                document.body.appendChild(confetti);
+                
+                // 动画结束后移除元素
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+        
+        // 结束游戏
+        function endGame() {
+            gameActive = false;
+            clearInterval(countdownTimer);
+            
+            // 计算总用时
+            const totalSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
+            
+            // 更新游戏结束信息
+            totalTimeElement.textContent = totalSeconds;
+            totalProblemsElement.textContent = problemCount;
+            
+            // 显示游戏结束画面
+            setTimeout(() => {
+                gameOverElement.classList.add('show');
+                createConfetti();
+            }, 1000);
+        }
+        
+        // 事件监听
+        document.getElementById('new-game').addEventListener('click', initGame);
+        document.getElementById('hint-btn').addEventListener('click', () => {
+            if (gameActive) {
+                clearInterval(countdownTimer);
+                generateNewProblem();
+            }
+        });
+        document.getElementById('play-again').addEventListener('click', initGame);
+        
+        // 初始化游戏
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
